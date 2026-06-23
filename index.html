@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#161B22">
+<title>Bitácora del Efecto Compuesto — Juan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#161B22; --surface:#1F2730; --surface-alt:#242E38; --line:#313C48;
+    --brass:#C9974C; --moss:#5E9C76; --ember:#C2603F;
+    --text:#ECE7DE; --muted:#8A94A1;
+    --nav-h:64px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:26px 16px 30px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--brass);text-transform:uppercase;}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:28px;margin:6px 0 0;letter-spacing:-.01em;}
+  .hero{text-align:center;padding-bottom:6px;}
+  .streak-number{font-family:'Fraunces',serif;font-weight:700;font-size:64px;line-height:1;color:var(--brass);margin-top:14px;}
+  .streak-label{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .best-streak{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;}
+  .chain-row{display:flex;justify-content:center;gap:6px;margin:18px 0 4px;flex-wrap:wrap;}
+  .link{width:22px;height:22px;border-radius:7px;border:1.6px solid var(--line);}
+  .link.complete{background:var(--brass);border-color:var(--brass);box-shadow:0 0 0 3px rgba(201,151,76,.15);}
+  .link.today.incomplete{border-color:var(--brass);border-style:dashed;animation:pulse 2.2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 18px;margin-top:18px;}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:11px;border-bottom:1px solid var(--line);gap:10px;}
+  .day-status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .day-status.done{color:var(--moss);}
+
+  .routine-list{list-style:none;margin:0;padding:0;}
+  .routine-row{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line);font-size:15px;}
+  .routine-row:last-child{border-bottom:none;}
+  .check{width:22px;height:22px;flex:none;border-radius:6px;border:1.6px solid var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--bg);user-select:none;transition:.12s;}
+  .check.on{background:var(--moss);border-color:var(--moss);}
+  .routine-row .label{flex:1;cursor:default;}
+  .routine-row.checked-text .label{color:var(--muted);text-decoration:line-through;}
+  .del-btn{flex:none;color:var(--muted);background:none;border:none;font-size:18px;cursor:pointer;padding:0 4px;line-height:1;}
+  .del-btn:hover{color:var(--ember);}
+
+  label.field-label{display:block;font-size:12px;color:var(--muted);margin:14px 0 6px;font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;}
+  input[type=text],select{width:100%;background:var(--surface-alt);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:15px;}
+  input[type=text]:focus,select:focus{outline:none;border-color:var(--brass);}
+  select{appearance:none;}
+  .gratitude-row{display:flex;flex-direction:column;gap:8px;}
+
+  button.btn{background:var(--brass);color:var(--bg);border:none;border-radius:8px;padding:11px 18px;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer;}
+  button.btn:hover{opacity:.9;}
+  .btn-outline{background:transparent;border:1px solid var(--brass);color:var(--brass);border-radius:8px;padding:10px 16px;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer;}
+  .btn-outline:hover{background:rgba(201,151,76,.1);}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;}
+  .btn-ghost:hover{border-color:var(--muted);color:var(--text);}
+  .btn-ghost.active{border-color:var(--brass);color:var(--brass);}
+
+  #saveMsg,#ioMsg{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--moss);margin-top:8px;min-height:14px;}
+  .history{margin-top:18px;border-top:1px solid var(--line);padding-top:14px;}
+  .history-row{font-size:13px;color:var(--muted);margin-bottom:9px;line-height:1.5;}
+  .history-row b{color:var(--text);font-weight:500;}
+
+  .area{border-bottom:1px solid var(--line);}
+  .area:last-child{border-bottom:none;}
+  .area-head{display:flex;align-items:center;gap:12px;padding:13px 2px;cursor:pointer;}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:.04em;color:var(--brass);border:1px solid var(--brass);border-radius:6px;padding:3px 6px;flex:none;}
+  .area-label{font-size:15px;font-weight:500;flex:1;}
+  .area-progress{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .chev{color:var(--muted);font-size:12px;width:14px;text-align:center;transition:.15s;}
+  .obj-list{list-style:none;margin:0 0 12px;padding:0 0 0 2px;display:none;}
+  .area.open .obj-list{display:block;}
+  .area.open .chev{transform:rotate(90deg);}
+  .obj-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0 9px 4px;font-size:14px;}
+  .obj-text{flex:1;line-height:1.4;}
+  .obj-text.done{color:var(--muted);text-decoration:line-through;}
+  .deadline-pill{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:2px 6px;flex:none;white-space:nowrap;}
+  .star{cursor:pointer;flex:none;font-size:15px;color:var(--line);}
+  .star.active{color:var(--brass);}
+  .add-obj-form{display:none;gap:8px;padding:10px 2px 4px;flex-direction:column;}
+  .area.adding .add-obj-form{display:flex;}
+  .add-row{display:flex;gap:8px;}
+  .add-row input{flex:1;}
+  .add-row input.deadline-in{flex:0 0 110px;}
+  .area-add-link{font-size:12.5px;color:var(--brass);cursor:pointer;padding:4px 2px 10px;font-family:'IBM Plex Mono',monospace;}
+
+  .focus-callout{background:var(--surface-alt);border:1px solid var(--brass);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13.5px;}
+  .focus-callout .eyebrow{margin-bottom:4px;display:block;}
+
+  .summary-stats{font-size:14px;line-height:1.8;color:var(--muted);}
+  .summary-stats b{color:var(--text);}
+  .summary-note{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5;}
+
+  .chart-wrap{margin-top:6px;}
+  .chart-title{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:18px 0 8px;}
+  .bar-track{height:9px;background:var(--surface-alt);border-radius:5px;overflow:hidden;margin:5px 0 2px;}
+  .bar-fill{height:100%;background:var(--brass);border-radius:5px;}
+  .area-bar-row{margin-bottom:12px;}
+  .area-bar-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:2px;}
+  .area-bar-top span:last-child{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:12px;}
+
+  .tab{display:none;}
+  .tab.active{display:block;}
+  nav.bottom{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(31,39,48,.97);border-top:1px solid var(--line);display:flex;backdrop-filter:blur(8px);z-index:20;}
+  nav.bottom button{flex:1;background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding-top:8px;}
+  nav.bottom button .ico{font-size:19px;line-height:1;}
+  nav.bottom button.active{color:var(--brass);}
+
+  .footnote{text-align:center;color:var(--muted);font-size:11px;margin-top:26px;font-family:'IBM Plex Mono',monospace;line-height:1.6;}
+  .io-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+  @media(max-width:480px){ h1{font-size:24px;} .wrap{padding:20px 13px 24px;} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ============ TAB: HOY ============ -->
+  <section class="tab active" id="tab-hoy">
+    <header class="hero">
+      <div class="eyebrow">Sistema diario · Juan</div>
+      <h1>Bitácora del Efecto Compuesto</h1>
+      <div class="streak-number" id="streakNum">0</div>
+      <div class="streak-label">días sin romper la cadena</div>
+      <div class="chain-row" id="chainRow"></div>
+      <div class="best-streak" id="bestStreak"></div>
+    </header>
+
+    <section class="panel">
+      <div class="panel-head">
+        <span class="eyebrow">Hoy · <span id="todayDate"></span></span>
+        <span class="day-status" id="dayStatus">—</span>
+      </div>
+      <ul class="routine-list" id="routineList"></ul>
+      <div class="io-row" style="margin-top:14px">
+        <button class="btn-ghost" id="editHabitsBtn">✎ Editar hábitos</button>
+      </div>
+      <div id="addHabitBox" style="display:none;margin-top:10px">
+        <div class="add-row">
+          <input type="text" id="newHabitInput" placeholder="Nuevo hábito diario…">
+          <button class="btn" id="addHabitBtn">Agregar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><span class="eyebrow">Bitácora nocturna</span></div>
+      <label class="field-label">Tarea #1 de mañana (la única que más mueve la aguja)</label>
+      <input type="text" id="task1Input" placeholder="Ej: cerrar la venta de la mercancía retenida">
+      <label class="field-label">3 cosas que hiciste bien hoy</label>
+      <div class="gratitude-row">
+        <input type="text" class="gratitude-input" data-i="0" placeholder="1.">
+        <input type="text" class="gratitude-input" data-i="1" placeholder="2.">
+        <input type="text" class="gratitude-input" data-i="2" placeholder="3.">
+      </div>
+      <button class="btn" id="saveNight" style="margin-top:16px">Guardar noche</button>
+      <div id="saveMsg"></div>
+      <div class="history" id="historyList"></div>
+    </section>
+  </section>
+
+  <!-- ============ TAB: OBJETIVOS ============ -->
+  <section class="tab" id="tab-obj">
+    <header style="padding-top:4px">
+      <div class="eyebrow">Hacia dónde voy</div>
+      <h1 style="font-size:24px">Objetivos por área</h1>
+    </header>
+    <section class="panel">
+      <div class="panel-head">
+        <span class="eyebrow">Progreso global</span>
+        <span class="area-progress" id="overallProgress"></span>
+      </div>
+      <div id="areasContainer"></div>
+    </section>
+    <div class="footnote">Toca el ★ para marcar tu foco de la semana. Toca un área para abrirla y agregar objetivos.</div>
+  </section>
+
+  <!-- ============ TAB: PROGRESO ============ -->
+  <section class="tab" id="tab-prog">
+    <header style="padding-top:4px">
+      <div class="eyebrow">El efecto compuesto, visible</div>
+      <h1 style="font-size:24px">Tu progreso</h1>
+    </header>
+
+    <section class="panel">
+      <div class="panel-head"><span class="eyebrow">Resumen</span></div>
+      <div class="summary-stats" id="summaryStats"></div>
+
+      <div class="chart-title">Constancia de hábitos · últimos 30 días</div>
+      <div class="chart-wrap"><svg id="habitChart" width="100%" height="120" preserveAspectRatio="none"></svg></div>
+
+      <div class="chart-title">Avance por área</div>
+      <div id="areaBars"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><span class="eyebrow">Respaldo y análisis</span></div>
+      <div class="summary-note">Descarga un archivo con todo tu progreso y pásamelo en el chat cuando quieras que analice cómo vas. También puedes importar un respaldo si cambias de dispositivo.</div>
+      <div class="io-row" style="margin-top:12px">
+        <button class="btn-outline" id="exportBtn">↓ Descargar progreso</button>
+        <button class="btn-ghost" id="importBtn">↑ Importar respaldo</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none">
+      </div>
+      <div id="ioMsg"></div>
+    </section>
+    <div class="footnote">Tus datos se guardan en este dispositivo. Para sincronizar con otro, exporta e importa.</div>
+  </section>
+
+</div>
+
+<nav class="bottom">
+  <button data-tab="hoy" class="active"><span class="ico">◉</span>Hoy</button>
+  <button data-tab="obj"><span class="ico">◈</span>Objetivos</button>
+  <button data-tab="prog"><span class="ico">▦</span>Progreso</button>
+</nav>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   CONTENIDO BASE — Claude edita esto cuando Juan pide cambios.
+   Al hacer push, los items nuevos aparecen aunque ya haya datos.
+   ============================================================ */
+const DEFAULT_HABITS = [
+  {id:'med', label:'Meditación 10 min'},
+  {id:'dom', label:'10 dominadas'},
+  {id:'des', label:'Desayuno'},
+  {id:'blo', label:'Bloqueador + rutina de cara'},
+  {id:'lec', label:'Lectura / audiolibro 15 min'},
+  {id:'t1',  label:'Escribir y ejecutar la tarea #1'},
+  {id:'pan', label:'Pantallas apagadas (10pm)'},
+  {id:'noc', label:'Pregunta de la noche + 3 cosas bien hechas'}
+];
+
+const AREA_META = {
+  negocios:{label:'Negocios', badge:'NEG'},
+  finanzas:{label:'Finanzas', badge:'FIN'},
+  salud:{label:'Salud', badge:'SAL'},
+  bienestar:{label:'Bienestar', badge:'BIE'},
+  espiritualidad:{label:'Espiritualidad', badge:'ESP'},
+  familia:{label:'Familia', badge:'FAM'},
+  relaciones:{label:'Relaciones', badge:'REL'},
+  modo:{label:'Modo de vida', badge:'MOD'}
+};
+
+const DEFAULT_OBJECTIVES = [
+  {id:'neg-1', area:'negocios', text:'Registrar la marca de domótica con nombre nuevo', deadline:'dic 2026'},
+  {id:'neg-2', area:'negocios', text:'Lanzar el sistema de IA de dropshipping', deadline:'60 días'},
+  {id:'neg-3', area:'negocios', text:'Definir qué hacer con los 80M de la LLC', deadline:null},
+  {id:'neg-4', area:'negocios', text:'Vender la mercancía retenida', deadline:'esta semana'},
+  {id:'fin-1', area:'finanzas', text:'Resolver la estructura fiscal con un contador', deadline:'agosto'},
+  {id:'fin-2', area:'finanzas', text:'Definir % fijo por ingreso: 60/20/20', deadline:null},
+  {id:'fin-3', area:'finanzas', text:'Vender los iPhones viejos y la pantalla', deadline:null},
+  {id:'fin-4', area:'finanzas', text:'Decidir en qué invertir los 80M de la LLC', deadline:'máx 90 días'},
+  {id:'sal-1', area:'salud', text:'Desayunar todos los días antes de las 10am', deadline:null},
+  {id:'sal-2', area:'salud', text:'Reducir pantallas después de las 10pm', deadline:null},
+  {id:'sal-3', area:'salud', text:'Ir al dermatólogo', deadline:'fin de julio'},
+  {id:'sal-4', area:'salud', text:'Ir a una barbería buena', deadline:null},
+  {id:'bie-1', area:'bienestar', text:'Meditar 10 min diarios, 30 días seguidos', deadline:'empieza hoy'},
+  {id:'bie-2', area:'bienestar', text:'Escribir cada noche 3 cosas que hiciste bien', deadline:null},
+  {id:'bie-3', area:'bienestar', text:'Ejecutar la decisión que llevas posponiendo +30 días', deadline:'esta semana'},
+  {id:'esp-1', area:'espiritualidad', text:'Escribir tu propósito de vida en una sola oración', deadline:'fin de junio'},
+  {id:'esp-2', area:'espiritualidad', text:'Leer o escuchar desarrollo personal 15 min/día', deadline:null},
+  {id:'fam-1', area:'familia', text:'Proteger el tiempo familiar de fin de semana', deadline:null},
+  {id:'fam-2', area:'familia', text:'Una llamada a tu hermana por semana', deadline:null},
+  {id:'rel-1', area:'relaciones', text:'Conversación honesta con tu novia sobre hacia dónde va la relación', deadline:null},
+  {id:'rel-2', area:'relaciones', text:'Unirte a una comunidad de emprendedores', deadline:null},
+  {id:'rel-3', area:'relaciones', text:'Hablar con 1 persona nueva por semana', deadline:null},
+  {id:'mod-1', area:'modo', text:'Definir dónde quieres vivir en 2 años', deadline:'agosto'},
+  {id:'mod-2', area:'modo', text:'Usar el viaje a Panamá como experimento de vida', deadline:null},
+  {id:'mod-3', area:'modo', text:'Comprar la MacBook y los micrófonos (inversión en tu marca)', deadline:null},
+  {id:'mod-4', area:'modo', text:'Lanzar tu marca personal con un video', deadline:'1 ago 2026'}
+];
+
+/* ============================================================
+   ALMACENAMIENTO (localStorage)
+   ============================================================ */
+const K = {
+  habits:'ec_habits', objectives:'ec_objectives', meta:'ec_meta',
+  completion:'ec_completion', daily:'ec_daily', nights:'ec_nights'
+};
+function load(key, fb){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fb; }catch(e){ return fb; } }
+function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){ console.error(e); } }
+
+/* ----- fechas ----- */
+function pad(n){ return String(n).padStart(2,'0'); }
+function dStr(d){ d=d||new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function addDays(s,n){ const d=new Date(s+'T00:00:00'); d.setDate(d.getDate()+n); return d; }
+const today = dStr();
+
+/* ----- estado en memoria ----- */
+let habits, objectives, meta, completion, daily, nights;
+
+/* ----- merge de defaults (clave para que Claude agregue items) ----- */
+function mergeHabits(){
+  let stored = load(K.habits, null);
+  if(!stored){ habits = DEFAULT_HABITS.map(h=>Object.assign({},h)); save(K.habits,habits); return; }
+  const ids = new Set(stored.map(h=>h.id));
+  DEFAULT_HABITS.forEach(h=>{ if(!ids.has(h.id)) stored.push(Object.assign({},h)); });
+  habits = stored; save(K.habits, habits);
+}
+function mergeObjectives(){
+  let stored = load(K.objectives, null);
+  if(!stored){ objectives = DEFAULT_OBJECTIVES.map(o=>Object.assign({done:false},o)); save(K.objectives,objectives); return; }
+  const ids = new Set(stored.map(o=>o.id));
+  DEFAULT_OBJECTIVES.forEach(o=>{ if(!ids.has(o.id)) stored.push(Object.assign({done:false},o)); });
+  objectives = stored; save(K.objectives, objectives);
+}
+
+/* ============================================================
+   HÁBITOS DIARIOS
+   ============================================================ */
+function dailyDefault(){ const r={}; habits.forEach(h=>r[h.id]=false); return {routine:r, task1:'', gratitude:['','','']}; }
+function getDaily(date){
+  const all = daily[date] || dailyDefault();
+  habits.forEach(h=>{ if(!(h.id in all.routine)) all.routine[h.id]=false; });
+  if(!all.gratitude) all.gratitude=['','',''];
+  return all;
+}
+function isComplete(routine){ return habits.length>0 && habits.every(h=>routine[h.id]===true); }
+function completedCount(routine){ return habits.filter(h=>routine[h.id]===true).length; }
+
+function computeStreaks(){
+  const trueDates = Object.keys(completion).filter(d=>completion[d]).sort();
+  let best = trueDates.length?1:0, run=1;
+  for(let i=1;i<trueDates.length;i++){
+    const diff=(new Date(trueDates[i]+'T00:00:00')-new Date(trueDates[i-1]+'T00:00:00'))/86400000;
+    run = diff===1?run+1:1; if(run>best)best=run;
+  }
+  const yest=dStr(addDays(today,-1));
+  let cur = completion[today]?today:(completion[yest]?yest:null), current=0;
+  while(cur && completion[cur]){ current++; cur=dStr(addDays(cur,-1)); }
+  return {current, best:Math.max(best,current)};
+}
+
+function toggleHabit(id){
+  const d = getDaily(today);
+  d.routine[id] = !d.routine[id];
+  daily[today]=d; save(K.daily, daily);
+  if(isComplete(d.routine)) completion[today]=true; else delete completion[today];
+  save(K.completion, completion);
+  renderHoy(); renderProgreso();
+}
+
+/* ============================================================
+   RENDER · HOY
+   ============================================================ */
+function renderHoy(){
+  document.getElementById('todayDate').textContent = today;
+  const d = getDaily(today);
+
+  // cadena + racha
+  const {current,best} = computeStreaks();
+  document.getElementById('streakNum').textContent = current;
+  document.getElementById('bestStreak').textContent =
+    best>current ? ('Mejor racha: '+best+' días')
+    : (current>0 ? 'Vas en tu mejor racha. No la rompas hoy.' : 'Hoy empieza la racha.');
+  const chain=document.getElementById('chainRow'); chain.innerHTML='';
+  for(let i=13;i>=0;i--){
+    const dd=dStr(addDays(today,-i)); const div=document.createElement('div'); div.className='link';
+    if(completion[dd]) div.className+=' complete'; else if(dd===today) div.className+=' today incomplete';
+    chain.appendChild(div);
+  }
+
+  // estado del día
+  const st=document.getElementById('dayStatus'); const done=completedCount(d.routine);
+  if(done===habits.length && habits.length>0){ st.textContent='✓ Día completo'; st.className='day-status done'; }
+  else { st.textContent=done+'/'+habits.length+' hábitos'; st.className='day-status'; }
+
+  // lista de hábitos
+  const list=document.getElementById('routineList'); list.innerHTML='';
+  const editing = document.getElementById('addHabitBox').style.display!=='none';
+  habits.forEach(h=>{
+    const on=!!d.routine[h.id];
+    const li=document.createElement('li'); li.className='routine-row'+(on?' checked-text':'');
+    li.innerHTML='<div class="check '+(on?'on':'')+'" data-h="'+h.id+'">'+(on?'✓':'')+'</div>'+
+                 '<span class="label">'+esc(h.label)+'</span>'+
+                 (editing?'<button class="del-btn" data-delh="'+h.id+'">×</button>':'');
+    list.appendChild(li);
+  });
+  list.querySelectorAll('.check').forEach(c=>c.addEventListener('click',()=>toggleHabit(c.dataset.h)));
+  list.querySelectorAll('[data-delh]').forEach(b=>b.addEventListener('click',()=>deleteHabit(b.dataset.delh)));
+
+  // bitácora nocturna
+  document.getElementById('task1Input').value = d.task1||'';
+  document.querySelectorAll('.gratitude-input').forEach(inp=>{ inp.value=(d.gratitude&&d.gratitude[+inp.dataset.i])||''; });
+
+  // historial
+  const hl=document.getElementById('historyList');
+  if(!nights.length){ hl.innerHTML='<div class="history-row">Aún no hay noches guardadas.</div>'; }
+  else hl.innerHTML = nights.slice(0,5).map(h=>{
+    const g=(h.gratitude||[]).filter(Boolean).join(' · ');
+    return '<div class="history-row"><b>'+h.date+'</b> — '+(h.task1?('Tarea #1: '+esc(h.task1)):'(sin tarea)')+(g?('<br>'+esc(g)):'')+'</div>';
+  }).join('');
+}
+
+function addHabit(){
+  const inp=document.getElementById('newHabitInput'); const txt=inp.value.trim(); if(!txt) return;
+  habits.push({id:'h'+Date.now(), label:txt, custom:true}); save(K.habits,habits);
+  inp.value=''; renderHoy();
+}
+function deleteHabit(id){
+  if(!confirm('¿Quitar este hábito?')) return;
+  habits = habits.filter(h=>h.id!==id); save(K.habits,habits);
+  Object.keys(daily).forEach(dt=>{ if(daily[dt].routine) delete daily[dt].routine[id]; });
+  save(K.daily,daily); renderHoy(); renderProgreso();
+}
+
+function saveNight(){
+  const d=getDaily(today);
+  d.task1=document.getElementById('task1Input').value;
+  d.gratitude=[0,1,2].map(i=>document.querySelector('.gratitude-input[data-i="'+i+'"]').value);
+  daily[today]=d; save(K.daily,daily);
+  const entry={date:today, task1:d.task1, gratitude:d.gratitude};
+  const idx=nights.findIndex(n=>n.date===today);
+  if(idx>=0) nights[idx]=entry; else nights.push(entry);
+  nights.sort((a,b)=>a.date<b.date?1:-1); nights=nights.slice(0,60); save(K.nights,nights);
+  renderHoy(); renderProgreso();
+  const m=document.getElementById('saveMsg'); m.textContent='Guardado.'; setTimeout(()=>m.textContent='',2200);
+}
+
+/* ============================================================
+   RENDER · OBJETIVOS
+   ============================================================ */
+function toggleObjective(id){ const o=objectives.find(x=>x.id===id); o.done=!o.done; save(K.objectives,objectives); renderObjetivos(); renderProgreso(); }
+function toggleFocus(id){ meta.focusId = meta.focusId===id?null:id; save(K.meta,meta); renderObjetivos(); }
+function deleteObjective(id){ if(!confirm('¿Eliminar este objetivo?'))return; objectives=objectives.filter(o=>o.id!==id); if(meta.focusId===id)meta.focusId=null; save(K.objectives,objectives); save(K.meta,meta); renderObjetivos(); renderProgreso(); }
+function addObjective(area, text, deadline){
+  if(!text.trim())return;
+  objectives.push({id:'o'+Date.now(), area, text:text.trim(), deadline:deadline.trim()||null, done:false, custom:true});
+  save(K.objectives,objectives); renderObjetivos(); renderProgreso();
+}
+
+function renderObjetivos(){
+  const cont=document.getElementById('areasContainer');
+  const openAreas=new Set(Array.from(cont.querySelectorAll('.area.open')).map(a=>a.dataset.area));
+  const addingAreas=new Set(Array.from(cont.querySelectorAll('.area.adding')).map(a=>a.dataset.area));
+  cont.innerHTML='';
+
+  // foco de la semana
+  const f=objectives.find(o=>o.id===meta.focusId);
+  if(f){ const fd=document.createElement('div'); fd.className='focus-callout';
+    fd.innerHTML='<span class="eyebrow">Foco de esta semana</span>'+esc(f.text); cont.appendChild(fd); }
+
+  const done=objectives.filter(o=>o.done).length;
+  document.getElementById('overallProgress').textContent=done+'/'+objectives.length+' hechos';
+
+  Object.keys(AREA_META).forEach(key=>{
+    const m=AREA_META[key]; const items=objectives.filter(o=>o.area===key);
+    const dn=items.filter(o=>o.done).length;
+    const area=document.createElement('div');
+    area.className='area'+(openAreas.has(key)?' open':'')+(addingAreas.has(key)?' adding':'');
+    area.dataset.area=key;
+
+    const head=document.createElement('div'); head.className='area-head';
+    head.innerHTML='<span class="badge">'+m.badge+'</span><span class="area-label">'+m.label+'</span>'+
+                   '<span class="area-progress">'+dn+'/'+items.length+'</span><span class="chev">▸</span>';
+    head.addEventListener('click',()=>area.classList.toggle('open'));
+
+    const ul=document.createElement('ul'); ul.className='obj-list';
+    items.forEach(o=>{
+      const li=document.createElement('li'); li.className='obj-row';
+      li.innerHTML='<div class="check '+(o.done?'on':'')+'" data-obj="'+o.id+'">'+(o.done?'✓':'')+'</div>'+
+        '<span class="obj-text '+(o.done?'done':'')+'">'+esc(o.text)+'</span>'+
+        (o.deadline?'<span class="deadline-pill">'+esc(o.deadline)+'</span>':'')+
+        '<span class="star '+(meta.focusId===o.id?'active':'')+'" data-focus="'+o.id+'">★</span>'+
+        '<button class="del-btn" data-delo="'+o.id+'">×</button>';
+      ul.appendChild(li);
+    });
+
+    const addLink=document.createElement('div'); addLink.className='area-add-link'; addLink.textContent='+ agregar objetivo';
+    addLink.addEventListener('click',e=>{e.stopPropagation();area.classList.add('open','adding');});
+    const form=document.createElement('div'); form.className='add-obj-form';
+    form.innerHTML='<div class="add-row"><input type="text" class="new-obj-text" placeholder="Nuevo objetivo…"><input type="text" class="deadline-in" placeholder="fecha (opc.)"></div>'+
+                   '<div class="add-row"><button class="btn add-obj-go">Agregar</button><button class="btn-ghost add-obj-cancel">Cancelar</button></div>';
+
+    area.appendChild(head); area.appendChild(ul); area.appendChild(addLink); area.appendChild(form);
+    cont.appendChild(area);
+
+    form.querySelector('.add-obj-go').addEventListener('click',()=>{ addObjective(key, form.querySelector('.new-obj-text').value, form.querySelector('.deadline-in').value); });
+    form.querySelector('.add-obj-cancel').addEventListener('click',()=>area.classList.remove('adding'));
+  });
+
+  cont.querySelectorAll('.check[data-obj]').forEach(c=>c.addEventListener('click',e=>{e.stopPropagation();toggleObjective(c.dataset.obj);}));
+  cont.querySelectorAll('.star').forEach(s=>s.addEventListener('click',e=>{e.stopPropagation();toggleFocus(s.dataset.focus);}));
+  cont.querySelectorAll('[data-delo]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();deleteObjective(b.dataset.delo);}));
+}
+
+/* ============================================================
+   RENDER · PROGRESO
+   ============================================================ */
+function renderProgreso(){
+  const {current,best}=computeStreaks();
+  const doneObj=objectives.filter(o=>o.done).length;
+  const pct=objectives.length?Math.round(doneObj/objectives.length*100):0;
+  document.getElementById('summaryStats').innerHTML=
+    'Racha actual: <b>'+current+' días</b><br>'+
+    'Mejor racha: <b>'+best+' días</b><br>'+
+    'Noches registradas: <b>'+nights.length+'</b><br>'+
+    'Objetivos completados: <b>'+doneObj+'/'+objectives.length+' ('+pct+'%)</b>';
+
+  // gráfica de constancia (30 días)
+  drawHabitChart();
+
+  // barras por área
+  const ab=document.getElementById('areaBars'); ab.innerHTML='';
+  Object.keys(AREA_META).forEach(key=>{
+    const items=objectives.filter(o=>o.area===key); if(!items.length) return;
+    const dn=items.filter(o=>o.done).length; const p=Math.round(dn/items.length*100);
+    const row=document.createElement('div'); row.className='area-bar-row';
+    row.innerHTML='<div class="area-bar-top"><span>'+AREA_META[key].label+'</span><span>'+dn+'/'+items.length+'</span></div>'+
+                  '<div class="bar-track"><div class="bar-fill" style="width:'+p+'%"></div></div>';
+    ab.appendChild(row);
+  });
+}
+
+function drawHabitChart(){
+  const svg=document.getElementById('habitChart');
+  const W=svg.clientWidth||340, H=120, n=30, gap=3;
+  const bw=(W-gap*(n-1))/n;
+  let html='';
+  for(let i=0;i<n;i++){
+    const dd=dStr(addDays(today,-(n-1-i)));
+    const d=daily[dd];
+    let ratio=0;
+    if(d&&d.routine){ const c=habits.filter(h=>d.routine[h.id]).length; ratio=habits.length?c/habits.length:0; }
+    const full=completion[dd]===true;
+    const h=Math.max(2, ratio*(H-6));
+    const x=i*(bw+gap), y=H-h;
+    const col = full?'#C9974C':(ratio>0?'#5E9C76':'#313C48');
+    html+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="2" fill="'+col+'"></rect>';
+  }
+  svg.innerHTML=html;
+}
+
+/* ============================================================
+   EXPORTAR / IMPORTAR
+   ============================================================ */
+function exportProgress(){
+  const {current,best}=computeStreaks();
+  const data={ app:'bitacora-efecto-compuesto', version:1, generadoEl:new Date().toISOString(),
+    rachaActual:current, mejorRacha:best,
+    habitos:habits, objetivos:objectives, meta:meta,
+    completitudDiaria:completion, registroDiario:daily, bitacoraNocturna:nights };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='bitacora-progreso-'+today+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+function importProgress(file){
+  const r=new FileReader();
+  r.onload=()=>{ try{
+    const d=JSON.parse(r.result);
+    if(d.habitos)save(K.habits,d.habitos); if(d.objetivos)save(K.objectives,d.objetivos);
+    if(d.meta)save(K.meta,d.meta); if(d.completitudDiaria)save(K.completion,d.completitudDiaria);
+    if(d.registroDiario)save(K.daily,d.registroDiario); if(d.bitacoraNocturna)save(K.nights,d.bitacoraNocturna);
+    const m=document.getElementById('ioMsg'); m.textContent='Respaldo importado. Recargando…';
+    setTimeout(()=>location.reload(),900);
+  }catch(e){ document.getElementById('ioMsg').textContent='Archivo no válido.'; } };
+  r.readAsText(file);
+}
+
+/* ============================================================
+   NAV + UTILIDADES
+   ============================================================ */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  window.scrollTo(0,0);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init(){
+  mergeHabits(); mergeObjectives();
+  meta=load(K.meta,{focusId:null});
+  completion=load(K.completion,{});
+  daily=load(K.daily,{});
+  nights=load(K.nights,[]);
+
+  renderHoy(); renderObjetivos(); renderProgreso();
+
+  document.getElementById('saveNight').addEventListener('click',saveNight);
+  document.getElementById('editHabitsBtn').addEventListener('click',function(){
+    const box=document.getElementById('addHabitBox');
+    const show=box.style.display==='none'; box.style.display=show?'block':'none';
+    this.classList.toggle('active',show); renderHoy();
+  });
+  document.getElementById('addHabitBtn').addEventListener('click',addHabit);
+  document.getElementById('newHabitInput').addEventListener('keydown',e=>{if(e.key==='Enter')addHabit();});
+  document.getElementById('exportBtn').addEventListener('click',exportProgress);
+  document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
+  document.getElementById('importFile').addEventListener('change',e=>{ if(e.target.files[0]) importProgress(e.target.files[0]); });
+  document.querySelectorAll('nav.bottom button').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+}
+init();
+})();
+</script>
+</body>
+</html>
